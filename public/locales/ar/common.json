@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "cta": {
+      "schedule": "الجدول",
+      "exploreSchedule": "استعراض الجدول"
+    },
+    "top": [
+      {
+        "key": "home",
+        "label": "الرئيسية",
+        "groups": [
+          {
+            "title": "حول باچو جالور",
+            "items": [
+              { "label": "حول باچو جالور", "href": "#tentang-pacu-jalur", "description": "التاريخ والقيم الثقافية" },
+              { "label": "تاريخ المهرجان", "href": "#sejarah-festival" },
+              { "label": "الجدول والعد التنازلي", "href": "#jadwal" },
+              { "label": "فيديو فيرال \"زراعة الهالة\"", "href": "#aura-farming" },
+              { "label": "أبرز الأحداث", "href": "#highlight-event" },
+              { "label": "معرض الصور", "href": "#galeri" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "wisata",
+        "label": "السياحة",
+        "groups": [
+          {
+            "title": "الطبيعة",
+            "items": [
+              { "label": "شلال جروه جيموراي", "href": "#guruh-gemurai" },
+              { "label": "تيبيان ناروسا", "href": "#tepian-narosa" },
+              { "label": "المزيد", "href": "#wisata-alam" }
+            ]
+          },
+          {
+            "title": "الثقافة",
+            "items": [
+              { "label": "مركز النسيج", "href": "#sentra-tenun" },
+              { "label": "مجسمات القوارب", "href": "#miniatur-jalur" },
+              { "label": "الحرف اليدوية", "href": "#kerajinan" }
+            ]
+          },
+          {
+            "title": "أدلة وباقات",
+            "items": [
+              { "label": "خريطة تفاعلية", "href": "#peta-interaktif", "description": "استكشف على الخريطة" },
+              { "label": "باقات سياحية", "href": "#paket-wisata" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "kuliner",
+        "label": "المأكولات",
+        "groups": [
+          {
+            "title": "أطباق تقليدية",
+            "items": [
+              { "label": "جالاماي", "href": "#galamai" },
+              { "label": "كونجي باراياك", "href": "#konji-barayak" },
+              { "label": "لوبك بوغي", "href": "#lopek-bugi" }
+            ]
+          },
+          {
+            "title": "توصيات",
+            "items": [
+              { "label": "أماكن الأكل", "href": "#tempat-makan" },
+              { "label": "وجبات خفيفة وهدايا", "href": "#oleh-oleh" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "akomodasi",
+        "label": "الإقامة والنقل",
+        "groups": [
+          {
+            "title": "الإقامة",
+            "items": [{ "label": "الفنادق وأماكن الإقامة", "href": "#penginapan" }]
+          },
+          {
+            "title": "النقل",
+            "items": [
+              { "label": "الوصول إلى كوانسينغ", "href": "#transportasi" },
+              { "label": "تأجير سيارات/سفر", "href": "#rental" }
+            ]
+          },
+          {
+            "title": "أدلة محلية",
+            "items": [{ "label": "دليل السفر المحلي", "href": "#panduan-perjalanan" }]
+          }
+        ]
+      },
+      {
+        "key": "budaya",
+        "label": "الثقافة والتاريخ",
+        "groups": [
+          {
+            "title": "التراث والقصص",
+            "items": [
+              { "label": "حكايات شعبية", "href": "#legenda" },
+              { "label": "التراث الثقافي", "href": "#warisan-budaya" }
+            ]
+          },
+          {
+            "title": "شخصيات وتقاليد",
+            "items": [
+              { "label": "شخصيات ثقافية", "href": "#tokoh-budaya" },
+              { "label": "طقوس فريدة", "href": "#tradisi" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "info",
+        "label": "معلومات الزوار",
+        "groups": [
+          {
+            "title": "مساعدة",
+            "items": [
+              { "label": "نصائح وما يجب فعله وما لا يجب", "href": "#tips" },
+              { "label": "الطوارئ", "href": "#bantuan-darurat" },
+              { "label": "الأسئلة الشائعة", "href": "#faq" },
+              { "label": "مراجعات الزوار", "href": "#ulasan" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
