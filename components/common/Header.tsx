@@ -7,6 +7,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import MegaMenuPanel from "./header/MegaMenuPanel";
 import LanguageSwitcher from "./header/LanguageSwitcher";
+import MotionButton from "./ui/Button";
+import { ChevronDown } from "lucide-react";
 
 type Lang = "id" | "en" | "ar";
 
@@ -35,7 +37,7 @@ const Header = () => {
     if (typeof window === "undefined") return "id";
     return (localStorage.getItem("lang") as Lang) || "id";
   });
-  
+
   useEffect(() => {
     if (typeof window !== "undefined") localStorage.setItem("lang", lang);
   }, [lang]);
@@ -95,12 +97,10 @@ const Header = () => {
       >
         <nav className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Logo */}
             <Link href="/" className="flex items-center">
               <Image src="/sampan.png" alt="Logo" width={40} height={40} />
             </Link>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
               {(() => {
                 const menus = ((messages && messages.nav && messages.nav.top) || []) as TopMenu[];
@@ -108,30 +108,23 @@ const Header = () => {
                   <div key={menu.key} className="relative" onMouseEnter={() => openMenu(menu.groups && menu.groups.length ? menu.key : null)} onMouseLeave={scheduleCloseMenu}>
                     <motion.button whileHover={{ y: -1 }} className={`font-medium font-body inline-flex items-center gap-1 text-white hover:text-orange-400`}>
                       {menu.label}
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDown className="w-4 h-4 text-gray-300 group-hover:text-orange-400 shrink-0" />
                     </motion.button>
 
-                    {/* Mega menu panel */}
                     <AnimatePresence>{activeMenu === menu.key && menu.groups && menu.groups.length ? <MegaMenuPanel groups={menu.groups} onMouseEnter={() => openMenu(menu.key)} onMouseLeave={scheduleCloseMenu} /> : null}</AnimatePresence>
                   </div>
                 ));
               })()}
             </div>
 
-            {/* Right controls */}
             <div className="hidden md:flex items-center gap-2">
-              {/* Language dropdown */}
               <LanguageSwitcher lang={lang} onChange={handleLangChange} />
 
-              {/* CTA */}
-              <Link href="/login" className={`ml-2 px-4 py-2 rounded-full font-semibold btn-hover-lift bg-orange-500 text-white hover:bg-orange-600`}>
+              <MotionButton href="/login" className="ml-2" size="md" variant="primary">
                 Login
-              </Link>
+              </MotionButton>
             </div>
 
-            {/* Mobile Menu Button */}
             <button className={`md:hidden p-2 rounded-lg text-white hover:bg-white/10`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-expanded={isMobileMenuOpen} aria-label="Toggle navigation">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
@@ -139,15 +132,12 @@ const Header = () => {
             </button>
           </div>
 
-          {/* Mobile Menu */}
           {isMobileMenuOpen && (
             <div className="md:hidden mt-3 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden">
-              {/* Controls */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-black/5">
                 <LanguageSwitcher lang={lang} onChange={handleLangChange} showLabel isScrolled />
               </div>
 
-              {/* Accordion menu */}
               <div className="divide-y divide-black/5">
                 {(() => {
                   const menus = ((messages && messages.nav && messages.nav.top) || []) as TopMenu[];
@@ -182,9 +172,9 @@ const Header = () => {
               </div>
 
               <div className="p-4">
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full inline-flex justify-center items-center px-4 py-3 rounded-xl bg-orange-500 text-white font-semibold">
+                <MotionButton href="/login" onClick={() => setIsMobileMenuOpen(false)} fullWidth size="md">
                   Login
-                </Link>
+                </MotionButton>
               </div>
             </div>
           )}
