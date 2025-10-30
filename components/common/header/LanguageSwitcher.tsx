@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Languages } from "lucide-react";
 
 type Lang = "id" | "en" | "ar";
 
@@ -43,9 +44,7 @@ const LanguageSwitcher = ({ lang, onChange, isScrolled, showLabel }: LanguageSwi
           (isScrolled ? "bg-gray-100 text-gray-800 hover:bg-gray-200" : "bg-white/10 text-white hover:bg-white/20")
         }
       >
-        <svg className={showLabel ? "w-4 h-4" : "w-5 h-5"} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm0 0c3 3 3 15 0 18m0-18c-3 3-3 15 0 18M3 12h18" />
-        </svg>
+        <Languages className={showLabel ? "w-4 h-4" : "w-5 h-5"} />
         {showLabel && <span className="text-sm font-medium">Bahasa</span>}
       </button>
 
