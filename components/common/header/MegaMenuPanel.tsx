@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 type MenuItem = {
   label: string;
@@ -60,7 +60,7 @@ const MegaMenuPanel = ({ groups, onMouseEnter, onMouseLeave }: MegaMenuPanelProp
                     <Link href={item.href || "#"} className="group block rounded-lg p-3 hover:bg-orange-50">
                       <div className="flex items-start justify-between gap-3">
                         <span className="text-sm font-medium text-gray-900 group-hover:text-orange-600 truncate">{item.label}</span>
-                        <ChevronDown className="w-4 h-4 text-gray-300 group-hover:text-orange-400 shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-orange-400 shrink-0" />
                       </div>
                       {item.description && <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.description}</p>}
                     </Link>
