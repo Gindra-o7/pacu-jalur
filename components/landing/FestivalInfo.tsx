@@ -32,7 +32,7 @@ export default function FestivalInfo() {
   }, []);
 
   return (
-    <section id="festival" className="py-20 bg-gradient-to-br from-orange-50 to-red-50">
+    <section id="festival" className="py-20 bg-linear-to-br from-orange-50 to-red-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">

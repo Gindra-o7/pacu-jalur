@@ -33,7 +33,7 @@ export default function PartnersSection() {
   ];
 
   return (
-    <section id="partners" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section id="partners" className="py-20 bg-linear-to-b from-gray-50 to-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Partner & Pengakuan</h2>
@@ -52,7 +52,7 @@ export default function PartnersSection() {
         </div>
 
         {/* Awards & Recognition */}
-        <div className="mt-16 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-8">
+        <div className="mt-16 bg-linear-to-r from-orange-50 to-red-50 rounded-2xl p-8">
           <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center font-heading">Penghargaan & Pengakuan</h3>
           <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center">

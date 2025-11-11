@@ -1,9 +1,11 @@
 export default function VideoSection() {
   return (
-    <section id="video" className="py-20 bg-gradient-to-r from-blue-50 to-green-50">
+    <section id="video" className="py-20 bg-linear-to-r from-blue-50 to-green-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Fenomena Viral "Aura Farming"</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">
+            Fenomena Viral &ldquo;Aura Farming&ldquo;
+          </h2>
           <div className="w-24 h-1 bg-orange-500 mx-auto mb-8"></div>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto font-body">Video penari anak Togak Luan dalam Pacu Jalur menjadi viral di media sosial dunia, menarik perhatian internasional terhadap keindahan budaya Indonesia.</p>
         </div>
@@ -11,7 +13,7 @@ export default function VideoSection() {
         <div className="relative">
           <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gray-900">
             {/* Placeholder untuk video - bisa diganti dengan embed YouTube atau video asli */}
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-green-900">
+            <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-900 to-green-900">
               <div className="text-center text-white">
                 <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24">

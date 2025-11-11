@@ -47,12 +47,12 @@ const SidebarNav = ({ sections }: SidebarNavProps) => {
             >
               <span className="pointer-events-none absolute inset-0 -m-1 rounded-full bg-orange-500/25 blur-md opacity-0 scale-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-100" />
               <span
-                className={`relative block w-3.5 h-3.5 rounded-full outline outline-1 outline-white/70 shadow-[0_0_0_2px_rgba(0,0,0,0.35)] transition-all duration-300 ${
+                className={`relative block w-3.5 h-3.5 rounded-full outline outline-white/70 shadow-[0_0_0_2px_rgba(0,0,0,0.35)] transition-all duration-300 ${
                   activeSection === s.id ? "bg-orange-500 scale-125 ring-2 ring-white/70 animate-[pulse_1.8s_ease-in-out_infinite]" : "bg-white/90 group-hover:scale-110 group-hover:rotate-6"
                 }`}
               />
               <span
-                className="pointer-events-none absolute left-8 top-1/2 -translate-y-1/2 whitespace-nowrap text-xs text-white opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.35)] bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 border border-white/10 scale-95 group-hover:scale-100"
+                className="pointer-events-none absolute left-8 top-1/2 -translate-y-1/2 whitespace-nowrap text-xs text-white opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.35)] bg-linear-to-r from-orange-500 to-red-500 px-3 py-1 border border-white/10 scale-95 group-hover:scale-100"
                 style={{ textShadow: "0 2px 8px rgba(0,0,0,0.9)" }}
               >
                 {s.label}

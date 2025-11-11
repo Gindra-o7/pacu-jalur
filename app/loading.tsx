@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const Loading = () => {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-gradient-to-br from-black via-gray-900 to-black text-white">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-linear-to-br from-black via-gray-900 to-black text-white">
       <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-30 bg-orange-500 animate-glow" />
       <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full blur-3xl opacity-20 bg-red-600 animate-glow" />
 
@@ -25,15 +25,8 @@ const Loading = () => {
         <div className="text-center">
           <div className="text-sm tracking-widest uppercase text-white/70">Memuat</div>
           <h1 className="mt-1 font-heading text-3xl sm:text-4xl font-extrabold">
-            <span className="bg-gradient-to-r from-orange-400 via-red-400 to-orange-600 bg-clip-text text-transparent animate-gradient">Pacu Jalur</span>
+            <span className="bg-linear-to-r from-orange-400 via-red-400 to-orange-600 bg-clip-text text-transparent animate-gradient">Pacu Jalur</span>
           </h1>
-        </div>
-
-        <div className="w-64 max-w-[80vw]">
-          <div className="h-2.5 w-full rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full bg-orange-500 animate-[loading_1.4s_ease-in-out_infinite] rounded-full" />
-          </div>
-          <style>{`@keyframes loading { 0% { width: 0% } 50% { width: 85% } 100% { width: 0% } }`}</style>
         </div>
 
         <p className="text-xs text-white/60 mt-1" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>

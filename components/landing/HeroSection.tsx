@@ -4,16 +4,7 @@ import Image from "next/image";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-
-const dynamicTexts = ["Warisan Budaya Mendunia", "Festival Perahu Tradisional", "Togak Luan yang Memukau", "Kuantan Singingi, Riau"];
-
-const destinationImages = [
-  { src: "/pacu-jalur/pacu-jalur-1.webp", title: "Festival Pacu Jalur", location: "Kuantan Singingi, Riau" },
-  { src: "/pacu-jalur/pacu-jalur-2.png", title: "Perahu Tradisional", location: "Teluk Kuantan, Riau" },
-  { src: "/pacu-jalur/pacu-jalur-3.jpeg", title: "Togak Luan", location: "Kuantan Singingi, Riau" },
-  { src: "/pacu-jalur/pacu-jalur-4.jpeg", title: "Budaya Melayu", location: "Riau, Indonesia" },
-  { src: "/pacu-jalur/pacu-jalur-5.jpeg", title: "Festival Air", location: "Kuantan Singingi, Riau" },
-];
+import { getStorageImageUrl, BLUR_DATA_URL } from "@/utils/supabase/storage";
 
 const HeroSection = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -23,6 +14,16 @@ const HeroSection = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const cardsContainerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  const dynamicTexts = ["Warisan Budaya Mendunia", "Festival Perahu Tradisional", "Togak Luan yang Memukau", "Kuantan Singingi, Riau"];
+
+  const destinationImages = [
+    { src: getStorageImageUrl("public/pacu-jalur-1.webp"), title: "Festival Pacu Jalur", location: "Kuantan Singingi, Riau" },
+    { src: getStorageImageUrl("public/pacu-jalur-2.png"), title: "Perahu Tradisional", location: "Teluk Kuantan, Riau" },
+    { src: getStorageImageUrl("public/pacu-jalur-3.jpeg"), title: "Togak Luan", location: "Kuantan Singingi, Riau" },
+    { src: getStorageImageUrl("public/pacu-jalur-4.jpeg"), title: "Budaya Melayu", location: "Riau, Indonesia" },
+    { src: getStorageImageUrl("public/pacu-jalur-5.jpeg"), title: "Festival Air", location: "Kuantan Singingi, Riau" },
+  ];
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     setMousePosition({
@@ -110,6 +111,8 @@ const HeroSection = () => {
                 filter: "contrast(1.05) saturate(1.15) brightness(0.95)",
               }}
               priority={index === 0}
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
           </div>
         ))}

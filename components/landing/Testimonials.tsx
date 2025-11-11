@@ -1,9 +1,12 @@
+import { getStorageImageUrl, BLUR_DATA_URL } from "@/utils/supabase/storage";
+import Image from "next/image";
+
 export default function Testimonials() {
   const testimonials = [
     {
       name: "Sarah Johnson",
       location: "Australia",
-      avatar: "/pacu-jalur/penginapan-1.webp",
+      avatar: getStorageImageUrl("/public/penginapan-1.webp"),
       rating: 5,
       comment: "Pengalaman yang luar biasa! Togak Luan sangat memukau dan budaya Pacu Jalur sangat autentik. Pasti akan kembali lagi tahun depan!",
       flag: "🇦🇺",
@@ -11,7 +14,7 @@ export default function Testimonials() {
     {
       name: "Ahmad Rizki",
       location: "Jakarta",
-      avatar: "/pacu-jalur/penginapan-2.webp",
+      avatar: getStorageImageUrl("/public/penginapan-2.webp"),
       rating: 5,
       comment: "Sebagai orang Indonesia, saya bangga dengan warisan budaya ini. Festival Pacu Jalur menunjukkan kekayaan budaya kita yang luar biasa.",
       flag: "🇮🇩",
@@ -19,7 +22,7 @@ export default function Testimonials() {
     {
       name: "Maria Garcia",
       location: "Spain",
-      avatar: "/pacu-jalur/penginapan-3.webp",
+      avatar: getStorageImageUrl("/public/penginapan-3.webp"),
       rating: 5,
       comment: "The traditional boat race was incredible! The children dancers (Togak Luan) were so graceful and the whole festival atmosphere was amazing.",
       flag: "🇪🇸",
@@ -27,7 +30,7 @@ export default function Testimonials() {
   ];
 
   return (
-    <section id="testimonials" className="py-20 bg-gradient-to-r from-blue-50 to-green-50">
+    <section id="testimonials" className="py-20 bg-linear-to-r from-blue-50 to-green-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Testimoni Pengunjung</h2>
@@ -48,12 +51,12 @@ export default function Testimonials() {
               </div>
 
               {/* Comment */}
-              <p className="text-gray-700 mb-6 leading-relaxed font-body">"{testimonial.comment}"</p>
+              <p className="text-gray-700 mb-6 leading-relaxed font-body">`{testimonial.comment}`</p>
 
               {/* User Info */}
               <div className="flex items-center">
                 <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-                  <img src={testimonial.avatar} alt={testimonial.name} className="w-full h-full object-cover" />
+                  <Image src={testimonial.avatar} alt={testimonial.name} className="w-full h-full object-cover" placeholder="blur" blurDataURL={BLUR_DATA_URL} width={48} height={48} />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 font-heading">{testimonial.name}</h4>
@@ -70,9 +73,9 @@ export default function Testimonials() {
         <div className="text-center mt-12">
           <div className="inline-flex items-center bg-white px-6 py-3 rounded-full shadow-lg">
             <div className="flex -space-x-2 mr-4">
-              {testimonials.map((_, index) => (
+              {testimonials.map((testimonial, index) => (
                 <div key={index} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
-                  <img src={testimonials[index].avatar} alt="" className="w-full h-full object-cover" />
+                  <Image src={testimonial.avatar} alt="" className="w-full h-full object-cover" width={32} height={32} placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                 </div>
               ))}
             </div>

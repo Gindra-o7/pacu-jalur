@@ -37,7 +37,7 @@ const Button = ({ href, onClick, children, className = "", variant = "primary", 
   const Shine = (
     <span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
       <motion.span
-        className="absolute -inset-y-8 -left-1/2 w-[200%] rotate-12 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+        className="absolute -inset-y-8 -left-1/2 w-[200%] rotate-12 bg-linear-to-r from-transparent via-white/30 to-transparent"
         animate={{
           x: ["-100%", "200%"],
         }}
@@ -52,10 +52,10 @@ const Button = ({ href, onClick, children, className = "", variant = "primary", 
   );
 
   const Glow = variant === "primary" && (
-    <span aria-hidden className="pointer-events-none absolute -inset-0.5 rounded-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-500 opacity-0 blur-xl group-hover:opacity-50 transition-opacity duration-500" />
+    <span aria-hidden className="pointer-events-none absolute -inset-0.5 rounded-full bg-linear-to-r from-orange-400 via-red-400 to-orange-500 opacity-0 blur-xl group-hover:opacity-50 transition-opacity duration-500" />
   );
 
-  const InnerGradient = variant === "primary" && <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent opacity-50" />;
+  const InnerGradient = variant === "primary" && <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-linear-to-b from-white/20 to-transparent opacity-50" />;
 
   if (href) {
     return (

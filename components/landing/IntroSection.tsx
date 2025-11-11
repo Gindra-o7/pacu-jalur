@@ -1,6 +1,9 @@
+import { BLUR_DATA_URL, getStorageImageUrl } from "@/utils/supabase/storage";
+import Image from "next/image";
+
 export default function IntroSection() {
   return (
-    <section id="intro" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section id="intro" className="py-20 bg-linear-to-b from-gray-50 to-white">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Warisan Budaya yang Mendunia</h2>
@@ -37,7 +40,7 @@ export default function IntroSection() {
 
           <div className="relative">
             <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
-              <img src="/pacu-jalur/pacu-jalur-2.png" alt="Pacu Jalur Festival" className="w-full h-full object-cover" />
+              <Image src={getStorageImageUrl("public/pacu-jalur-2.png")} alt="Pacu Jalur Festival" className="w-full h-full object-cover" fill placeholder="blur" blurDataURL={BLUR_DATA_URL} />
             </div>
             <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
               <div className="text-sm text-gray-600">Festival Pacu Jalur 2024</div>
