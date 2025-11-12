@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react";
+import { getStorageImageUrl, BLUR_DATA_URL } from "@/utils/supabase/storage";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -109,7 +110,7 @@ export default function RegisterPage() {
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden py-12">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
-        <Image src="/pacu-jalur/pacu-jalur-3.jpeg" alt="Pacu Jalur Background" fill className="object-cover" priority />
+        <Image src={getStorageImageUrl("public/pacu-jalur-3.jpeg")} alt="Pacu Jalur Background" fill className="object-cover" priority blurDataURL={BLUR_DATA_URL} />
         <div className="absolute inset-0 bg-linear-to-br from-black/70 via-black/60 to-black/70" />
       </div>
 

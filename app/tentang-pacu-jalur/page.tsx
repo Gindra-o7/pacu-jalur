@@ -7,7 +7,6 @@ import SidebarNav from "@/components/common/SidebarNav";
 import { Calendar, Award, Users, Waves, Heart, Sparkles, BookOpen, Flag } from "lucide-react";
 
 const NAV_SECTIONS = [
-  { id: "hero", label: "Beranda" },
   { id: "sejarah", label: "Sejarah" },
   { id: "filosofi", label: "Filosofi" },
   { id: "warisan", label: "Warisan" },
@@ -130,7 +129,7 @@ export default function TentangPacuJalurPage() {
       <SidebarNav sections={NAV_SECTIONS} />
 
       {/* Hero Section */}
-      <section id="hero" className="relative pt-32 pb-20 bg-linear-to-br from-orange-50 via-white to-blue-50 overflow-hidden">
+      <section id="sejarah" className="relative pt-32 pb-20 bg-linear-to-br from-orange-50 via-white to-blue-50 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-5"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center max-w-4xl mx-auto">
@@ -152,15 +151,15 @@ export default function TentangPacuJalurPage() {
       </section>
 
       {/* Timeline Section */}
-      <section id="sejarah" className="py-20 bg-white">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="text-center mb-16">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Perjalanan Sejarah</h2>
             <div className="w-24 h-1 bg-orange-500 mx-auto mb-8"></div>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto font-body">Menelusuri evolusi pacu jalur dari alat transportasi hingga menjadi warisan budaya dunia</p>
           </motion.div>
 
-          <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="relative">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="relative">
             {/* Timeline Line */}
             <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 bg-linear-to-b from-blue-500 via-green-500 via-orange-500 via-purple-500 via-yellow-500 to-indigo-500 transform md:-translate-x-1/2"></div>
 
@@ -182,7 +181,7 @@ export default function TentangPacuJalurPage() {
                     <div className={`flex-1 ${isEven ? "md:pr-8" : "md:pl-8"}`}>
                       <motion.div whileHover={{ scale: 1.02, y: -5 }} className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
                         <div className="flex items-center gap-4 mb-4">
-                          <span className={`px-4 py-1 rounded-full text-sm font-semibold bg-gradient-to-r ${item.color} text-white font-body`}>{item.period}</span>
+                          <span className={`px-4 py-1 rounded-full text-sm font-semibold bg-linear-to-r ${item.color} text-white font-body`}>{item.period}</span>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-4 font-heading">{item.title}</h3>
                         <div className="space-y-4">
@@ -203,7 +202,7 @@ export default function TentangPacuJalurPage() {
       </section>
 
       {/* Philosophy Section */}
-      <section id="filosofi" className="py-20 bg-gradient-to-br from-gray-50 to-orange-50">
+      <section id="filosofi" className="py-20 bg-linear-to-br from-gray-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Filosofi dan Nilai Budaya</h2>
@@ -233,7 +232,7 @@ export default function TentangPacuJalurPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-12 md:p-16 text-white text-center shadow-2xl"
+            className="bg-linear-to-br from-orange-500 to-red-600 rounded-3xl p-12 md:p-16 text-white text-center shadow-2xl"
           >
             <Users className="w-16 h-16 mx-auto mb-6 text-white/90" />
             <h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">Warisan Budaya yang Dijaga</h2>
