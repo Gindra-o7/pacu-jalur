@@ -65,7 +65,6 @@ const SidebarNav = ({ sections }: SidebarNavProps) => {
       </div>
     </div>
   );
-}
-
+};
 
 export default SidebarNav;

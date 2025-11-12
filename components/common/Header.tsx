@@ -54,17 +54,17 @@ const navigationMessages: Messages = {
           {
             title: "Wisata Alam",
             items: [
-              { label: "Air Terjun Guruh Gemurai", href: "#guruh-gemurai" },
-              { label: "Tepian Narosa", href: "#tepian-narosa" },
-              { label: "Lainnya", href: "#wisata-alam" },
+              { label: "Air Terjun Guruh Gemurai", href: "/guruh-gemurai" },
+              { label: "Tepian Narosa", href: "/tepian-narosa" },
+              { label: "Lainnya", href: "/wisata-alam" },
             ],
           },
           {
             title: "Wisata Budaya",
             items: [
-              { label: "Sentra Tenun", href: "#sentra-tenun" },
-              { label: "Miniatur Jalur", href: "#miniatur-jalur" },
-              { label: "Kerajinan", href: "#kerajinan" },
+              { label: "Sentra Tenun", href: "/sentra-tenun" },
+              { label: "Miniatur Jalur", href: "/miniatur-jalur" },
+              { label: "Kerajinan", href: "/kerajinan" },
             ],
           },
         ],
@@ -75,18 +75,18 @@ const navigationMessages: Messages = {
         groups: [
           {
             title: "Akomodasi",
-            items: [{ label: "Daftar Hotel & Penginapan", href: "#penginapan" }],
+            items: [{ label: "Daftar Hotel & Penginapan", href: "/penginapan" }],
           },
           {
             title: "Transportasi",
             items: [
-              { label: "Info Transportasi ke Kuantan Singingi", href: "#transportasi" },
-              { label: "Rental Mobil/Travel", href: "#rental" },
+              { label: "Info Transportasi ke Kuantan Singingi", href: "/transportasi" },
+              { label: "Rental Mobil/Travel", href: "/rental" },
             ],
           },
           {
             title: "Panduan Lokal",
-            items: [{ label: "Panduan Perjalanan Lokal", href: "#panduan-perjalanan" }],
+            items: [{ label: "Panduan Perjalanan Lokal", href: "/panduan-perjalanan" }],
           },
         ],
       },
@@ -98,17 +98,17 @@ const navigationMessages: Messages = {
             title: "Tentang Pacu Jalur",
             items: [
               { label: "Tentang Pacu Jalur", href: "/tentang-pacu-jalur", description: "Sejarah, makna, dan nilai budaya" },
-              { label: "Jadwal & Countdown", href: "#jadwal" },
-              { label: 'Video Viral "Aura Farming"', href: "#aura-farming", description: "Fenomena unik yang mendunia" },
-              { label: "Highlight Event", href: "#highlight-event" },
-              { label: "Galeri Pacu Jalur", href: "#galeri" },
+              { label: "Jadwal & Countdown", href: "/jadwal" },
+              { label: 'Video Viral "Aura Farming"', href: "/aura-farming", description: "Fenomena unik yang mendunia" },
+              { label: "Highlight Event", href: "/highlight-event" },
+              { label: "Galeri Pacu Jalur", href: "/galeri" },
             ],
           },
           {
             title: "Warisan & Cerita",
             items: [
-              { label: "Cerita & Legenda Rakyat", href: "#legenda" },
-              { label: "Warisan Budaya", href: "#warisan-budaya" },
+              { label: "Cerita & Legenda Rakyat", href: "/legenda" },
+              { label: "Warisan Budaya", href: "/warisan-budaya" },
             ],
           },
         ],
@@ -120,10 +120,10 @@ const navigationMessages: Messages = {
           {
             title: "Bantuan",
             items: [
-              { label: "Tips & Do's and Don'ts", href: "#tips" },
-              { label: "Kontak & Bantuan Darurat", href: "#bantuan-darurat" },
-              { label: "FAQ", href: "#faq" },
-              { label: "Ulasan Pengunjung", href: "#ulasan" },
+              { label: "Tips & Do's and Don'ts", href: "/tips" },
+              { label: "Kontak & Bantuan Darurat", href: "/bantuan-darurat" },
+              { label: "FAQ", href: "/faq" },
+              { label: "Ulasan Pengunjung", href: "/ulasan" },
             ],
           },
         ],
