@@ -13,9 +13,16 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File
+    const folder = (formData.get('folder') as string) || 'jalur' // Default to jalur for backward compatibility
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    }
+
+    // Validate folder parameter
+    const validFolders = ['jalur', 'penginapan', 'acara']
+    if (!validFolders.includes(folder)) {
+      return NextResponse.json({ error: 'Invalid folder parameter' }, { status: 400 })
     }
 
     // Validate file type
@@ -33,12 +40,12 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Generate unique filename
+    // Generate unique filename with folder prefix
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 15)
     const fileExtension = file.name.split('.').pop() || 'jpg'
-    const originalFileName = `jalur/${timestamp}-${randomString}.${fileExtension}`
-    const compressedFileName = `jalur/${timestamp}-${randomString}-compressed.${fileExtension}`
+    const originalFileName = `${folder}/${timestamp}-${randomString}.${fileExtension}`
+    const compressedFileName = `${folder}/${timestamp}-${randomString}-compressed.${fileExtension}`
 
     // Upload original image
     const { data: originalData, error: originalError } = await supabase.storage

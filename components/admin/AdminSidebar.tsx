@@ -102,9 +102,7 @@ export default function AdminSidebar() {
       </button>
 
       {/* Sidebar */}
-      <aside
-        className={`fixed lg:relative top-0 left-0 h-screen w-[280px] bg-gray-900 text-white z-40 lg:z-auto transform transition-transform duration-300 shrink-0 ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-      >
+      <aside className={`fixed top-0 left-0 h-screen w-[280px] bg-gray-900 text-white z-40 transform transition-transform duration-300 ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-gray-800">
@@ -171,7 +169,7 @@ export default function AdminSidebar() {
             {showLogoutModal && (
               <>
                 {/* Backdrop */}
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={cancelLogout} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]" />
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={cancelLogout} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-100" />
 
                 {/* Modal */}
                 <motion.div
@@ -179,7 +177,7 @@ export default function AdminSidebar() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   transition={{ duration: 0.2 }}
-                  className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none"
+                  className="fixed inset-0 z-101 flex items-center justify-center p-4 pointer-events-none"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 pointer-events-auto" onClick={(e) => e.stopPropagation()}>

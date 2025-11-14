@@ -234,18 +234,18 @@ export default function TipsPage() {
       </section>
 
       {/* Closing CTA Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="bg-linear-to-br from-orange-500 to-red-600 rounded-3xl p-12 md:p-16 text-white text-center shadow-2xl"
+            className="bg-linear-to-br from-orange-500 to-red-600 rounded-2xl p-8 md:p-10 text-white text-center shadow-xl"
           >
-            <Heart className="w-16 h-16 mx-auto mb-6 text-white/90" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 font-heading">Nikmati Festival dengan Penuh Hormat</h2>
-            <p className="text-xl md:text-2xl leading-relaxed max-w-3xl mx-auto font-body text-white/95">
+            <Heart className="w-12 h-12 mx-auto mb-4 text-white/90" />
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 font-heading">Nikmati Festival dengan Penuh Hormat</h2>
+            <p className="text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-body text-white/95">
               Dengan mengikuti panduan ini, Anda tidak hanya akan mendapatkan pengalaman terbaik, tetapi juga turut menjaga dan menghormati warisan budaya yang telah hidup selama berabad-abad. Selamat menikmati festival Pacu Jalur!
             </p>
           </motion.div>

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, Plus, Edit, Trash2, Search, MapPin, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { Calendar, Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/common/Toast";
 import ConfirmDeleteModal from "@/components/admin/ConfirmDeleteModal";
+import AcaraModal from "@/components/admin/acara/AcaraModal";
+import AcaraCard from "@/components/admin/acara/AcaraCard";
+import AcaraCardSkeleton from "@/components/admin/acara/AcaraCardSkeleton";
 
 type Acara = {
   id: string;
@@ -18,6 +19,19 @@ type Acara = {
   tgl_selesai: string;
 };
 
+type Tribun = {
+  id: string;
+  nama_penyedia: string;
+  kontak_penyedia: string | null;
+  nama_tribun: string;
+  kategori: "REGULER" | "VIP";
+  harga_per_orang: number;
+  total_kursi: number;
+  kursi_terjual: number;
+  deskripsi: string | null;
+  acara_id: string;
+};
+
 export default function KelolaAcaraPage() {
   const { toasts, removeToast, success, error: showError } = useToast();
   const [acaraList, setAcaraList] = useState<Acara[]>([]);
@@ -25,6 +39,7 @@ export default function KelolaAcaraPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingAcara, setEditingAcara] = useState<Acara | null>(null);
+  const [tribunList, setTribunList] = useState<{ [key: string]: Tribun[] }>({});
   const [formData, setFormData] = useState({
     nama: "",
     lokasi: "",
@@ -33,30 +48,112 @@ export default function KelolaAcaraPage() {
     tgl_mulai: "",
     tgl_selesai: "",
   });
+  const [activeTab, setActiveTab] = useState<"info" | "tribun">("info");
+  const [tribunForm, setTribunForm] = useState({
+    nama_penyedia: "",
+    kontak_penyedia: "",
+    nama_tribun: "",
+    kategori: "REGULER" as "REGULER" | "VIP",
+    harga_per_orang: "",
+    total_kursi: "",
+    deskripsi: "",
+  });
+  const [editingTribun, setEditingTribun] = useState<Tribun | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null; name: string }>({
+  const [savingTribun, setSavingTribun] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: "acara" | "tribun" | null;
+    id: string | null;
+    name: string;
+  }>({
     isOpen: false,
+    type: null,
     id: null,
     name: "",
   });
 
   useEffect(() => {
-    loadAcara();
+    loadAllData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadAcara = async () => {
+  // Load semua data sekaligus (acara + tribun)
+  const loadAllData = async () => {
     try {
-      const response = await fetch("/api/admin/acara");
-      if (!response.ok) throw new Error("Failed to fetch acara");
-      const { data } = await response.json();
-      setAcaraList(data || []);
-    } catch (error) {
-      console.error("Error loading acara:", error);
+      setIsLoading(true);
+
+      // 1. Load data acara terlebih dahulu
+      const acaraResponse = await fetch("/api/admin/acara");
+      if (!acaraResponse.ok) throw new Error("Failed to fetch acara");
+      const { data: acaraData } = await acaraResponse.json();
+      setAcaraList(acaraData || []);
+
+      // 2. Load tribun untuk semua acara secara parallel
+      if (acaraData && acaraData.length > 0) {
+        const tribunPromises = acaraData.map((acara: Acara) =>
+          fetch(`/api/admin/acara/${acara.id}/tribun`)
+            .then((res) => (res.ok ? res.json() : { data: [] }))
+            .then(({ data }) => ({ acaraId: acara.id, data: data || [] }))
+            .catch(() => ({ acaraId: acara.id, data: [] }))
+        );
+
+        const tribunResults = await Promise.all(tribunPromises);
+
+        // Update state dengan semua data
+        const newTribunList: { [key: string]: Tribun[] } = {};
+        tribunResults.forEach((result) => {
+          newTribunList[result.acaraId] = result.data;
+        });
+        setTribunList(newTribunList);
+      }
+    } catch (err) {
+      console.error("Error loading data:", err);
       showError("Terjadi kesalahan saat memuat data");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadAcara = async () => {
+    // Reload semua data untuk memastikan sinkronisasi
+    await loadAllData();
+  };
+
+  const loadTribun = async (acaraId: string) => {
+    try {
+      const response = await fetch(`/api/admin/acara/${acaraId}/tribun`);
+      if (!response.ok) throw new Error("Failed to fetch tribun");
+      const { data } = await response.json();
+      setTribunList((prev) => ({ ...prev, [acaraId]: data || [] }));
+    } catch (error) {
+      console.error("Error loading tribun:", error);
+    }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "acara"); // Upload ke folder acara
+
+      const response = await fetch("/api/admin/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to upload image");
+      }
+
+      const { compressed_url } = await response.json();
+      return compressed_url;
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -74,6 +171,9 @@ export default function KelolaAcaraPage() {
           const { error } = await response.json();
           throw new Error(error || "Failed to update acara");
         }
+        const { data } = await response.json();
+        setEditingAcara(data);
+        await loadTribun(data.id);
         success("Acara berhasil diperbarui");
       } else {
         const response = await fetch("/api/admin/acara", {
@@ -85,11 +185,12 @@ export default function KelolaAcaraPage() {
           const { error } = await response.json();
           throw new Error(error || "Failed to create acara");
         }
+        const { data } = await response.json();
+        setEditingAcara(data);
+        await loadTribun(data.id);
         success("Acara berhasil ditambahkan");
       }
       await loadAcara();
-      setShowModal(false);
-      resetForm();
     } catch (err) {
       console.error("Error saving acara:", err);
       showError(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan data");
@@ -99,6 +200,7 @@ export default function KelolaAcaraPage() {
   };
 
   const handleEdit = (acara: Acara) => {
+    // Data tribun sudah di-load sebelumnya
     setEditingAcara(acara);
     setFormData({
       nama: acara.nama,
@@ -109,33 +211,141 @@ export default function KelolaAcaraPage() {
       tgl_selesai: acara.tgl_selesai,
     });
     setShowModal(true);
+    setActiveTab("info");
   };
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setDeleteModal({ isOpen: true, id, name });
+  const handleDeleteClick = (id: string, name: string, type: "acara" | "tribun" = "acara") => {
+    setDeleteModal({ isOpen: true, type, id, name });
   };
 
   const handleDelete = async () => {
-    if (!deleteModal.id) return;
+    if (!deleteModal.id || !deleteModal.type) return;
 
     setDeleting(deleteModal.id);
     try {
-      const response = await fetch(`/api/admin/acara/${deleteModal.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || "Failed to delete acara");
+      let response;
+      if (deleteModal.type === "acara") {
+        response = await fetch(`/api/admin/acara/${deleteModal.id}`, {
+          method: "DELETE",
+        });
+      } else if (deleteModal.type === "tribun") {
+        response = await fetch(`/api/admin/acara/tribun/${deleteModal.id}`, {
+          method: "DELETE",
+        });
       }
-      await loadAcara();
-      success("Acara berhasil dihapus");
-      setDeleteModal({ isOpen: false, id: null, name: "" });
+
+      if (!response || !response.ok) {
+        const { error } = await response!.json();
+        throw new Error(error || "Failed to delete");
+      }
+
+      if (deleteModal.type === "acara") {
+        await loadAcara();
+        success("Acara berhasil dihapus");
+      } else if (deleteModal.type === "tribun" && editingAcara) {
+        await loadTribun(editingAcara.id);
+        success("Tribun berhasil dihapus");
+      }
+
+      setDeleteModal({ isOpen: false, type: null, id: null, name: "" });
     } catch (err) {
-      console.error("Error deleting acara:", err);
+      console.error("Error deleting:", err);
       showError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus data");
     } finally {
       setDeleting(null);
     }
+  };
+
+  const handleAddTribun = async () => {
+    if (!editingAcara || !tribunForm.nama_penyedia.trim() || !tribunForm.nama_tribun.trim() || !tribunForm.harga_per_orang || !tribunForm.total_kursi) {
+      showError("Silakan lengkapi semua field yang wajib");
+      return;
+    }
+
+    setSavingTribun(true);
+    try {
+      const response = await fetch(`/api/admin/acara/${editingAcara.id}/tribun`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tribunForm),
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to add tribun");
+      }
+
+      await loadTribun(editingAcara.id);
+      setTribunForm({
+        nama_penyedia: "",
+        kontak_penyedia: "",
+        nama_tribun: "",
+        kategori: "REGULER",
+        harga_per_orang: "",
+        total_kursi: "",
+        deskripsi: "",
+      });
+      success("Tribun berhasil ditambahkan");
+    } catch (err) {
+      console.error("Error adding tribun:", err);
+      showError(err instanceof Error ? err.message : "Terjadi kesalahan saat menambah tribun");
+    } finally {
+      setSavingTribun(false);
+    }
+  };
+
+  const handleEditTribun = (tribun: Tribun) => {
+    setEditingTribun(tribun);
+    setTribunForm({
+      nama_penyedia: tribun.nama_penyedia,
+      kontak_penyedia: tribun.kontak_penyedia || "",
+      nama_tribun: tribun.nama_tribun,
+      kategori: tribun.kategori,
+      harga_per_orang: tribun.harga_per_orang.toString(),
+      total_kursi: tribun.total_kursi.toString(),
+      deskripsi: tribun.deskripsi || "",
+    });
+    setActiveTab("tribun");
+  };
+
+  const handleUpdateTribun = async () => {
+    if (!editingAcara || !editingTribun) return;
+
+    setSavingTribun(true);
+    try {
+      const response = await fetch(`/api/admin/acara/tribun/${editingTribun.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tribunForm),
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to update tribun");
+      }
+
+      await loadTribun(editingAcara.id);
+      setEditingTribun(null);
+      setTribunForm({
+        nama_penyedia: "",
+        kontak_penyedia: "",
+        nama_tribun: "",
+        kategori: "REGULER",
+        harga_per_orang: "",
+        total_kursi: "",
+        deskripsi: "",
+      });
+      success("Tribun berhasil diperbarui");
+    } catch (err) {
+      console.error("Error updating tribun:", err);
+      showError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengupdate tribun");
+    } finally {
+      setSavingTribun(false);
+    }
+  };
+
+  const handleDeleteTribunClick = (id: string, name: string) => {
+    setDeleteModal({ isOpen: true, type: "tribun", id, name });
   };
 
   const resetForm = () => {
@@ -148,13 +358,24 @@ export default function KelolaAcaraPage() {
       tgl_selesai: "",
     });
     setEditingAcara(null);
+    setTribunForm({
+      nama_penyedia: "",
+      kontak_penyedia: "",
+      nama_tribun: "",
+      kategori: "REGULER",
+      harga_per_orang: "",
+      total_kursi: "",
+      deskripsi: "",
+    });
+    setEditingTribun(null);
+    setActiveTab("info");
   };
 
   const filteredAcara = acaraList.filter((acara) => acara.nama.toLowerCase().includes(searchTerm.toLowerCase()) || acara.lokasi.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    return date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   };
 
   return (
@@ -162,7 +383,7 @@ export default function KelolaAcaraPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 font-heading">Kelola Acara</h1>
-          <p className="text-gray-600 mt-2 font-body">Mengelola acara dan event Pacu Jalur</p>
+          <p className="text-gray-600 mt-2 font-body">Mengelola acara dan tribun Pacu Jalur</p>
         </div>
         <button
           onClick={() => {
@@ -190,8 +411,10 @@ export default function KelolaAcaraPage() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <AcaraCardSkeleton key={index} />
+          ))}
         </div>
       ) : filteredAcara.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
@@ -201,164 +424,56 @@ export default function KelolaAcaraPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAcara.map((acara) => (
-            <div key={acara.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
-              {acara.image_url && (
-                <div className="relative h-48 w-full">
-                  <Image src={acara.image_url} alt={acara.nama} fill className="object-cover" />
-                </div>
-              )}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2 font-heading">{acara.nama}</h3>
-                <div className="flex items-center gap-2 text-gray-600 mb-3 font-body">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">{acara.lokasi}</span>
-                </div>
-                <div className="text-sm text-gray-600 mb-3 font-body">
-                  <p>
-                    <span className="font-semibold">Mulai:</span> {formatDate(acara.tgl_mulai)}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Selesai:</span> {formatDate(acara.tgl_selesai)}
-                  </p>
-                </div>
-                {acara.deskripsi && <p className="text-sm text-gray-600 line-clamp-2 mb-4 font-body">{acara.deskripsi}</p>}
-                <div className="flex gap-2">
-                  <button onClick={() => handleEdit(acara)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium font-body flex items-center justify-center gap-2">
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(acara.id, acara.nama)}
-                    disabled={deleting === acara.id}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium font-body disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {deleting === acara.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <AcaraCard
+              key={acara.id}
+              acara={acara}
+              onEdit={() => handleEdit(acara)}
+              onDelete={() => handleDeleteClick(acara.id, acara.nama, "acara")}
+              isDeleting={deleting === acara.id}
+              tribunList={tribunList[acara.id] || []}
+              formatDate={formatDate}
+            />
           ))}
         </div>
       )}
 
       {/* Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                setShowModal(false);
-                resetForm();
-              }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none"
-            >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 md:p-8 pointer-events-auto max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 font-heading">{editingAcara ? "Edit Acara" : "Tambah Acara Baru"}</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Nama Acara *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.nama}
-                      onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Lokasi *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.lokasi}
-                      onChange={(e) => setFormData({ ...formData, lokasi: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Tanggal Mulai *</label>
-                      <input
-                        type="date"
-                        required
-                        value={formData.tgl_mulai}
-                        onChange={(e) => setFormData({ ...formData, tgl_mulai: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Tanggal Selesai *</label>
-                      <input
-                        type="date"
-                        required
-                        value={formData.tgl_selesai}
-                        onChange={(e) => setFormData({ ...formData, tgl_selesai: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">URL Gambar</label>
-                    <input
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Deskripsi</label>
-                    <textarea
-                      value={formData.deskripsi}
-                      onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowModal(false);
-                        resetForm();
-                      }}
-                      className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300 font-medium font-body"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="flex-1 px-4 py-3 rounded-xl bg-linear-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-medium font-body shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {saving ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Menyimpan...
-                        </>
-                      ) : editingAcara ? (
-                        "Update"
-                      ) : (
-                        "Simpan"
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <AcaraModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          resetForm();
+        }}
+        editingAcara={editingAcara}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        acaraFormData={formData}
+        onAcaraFormChange={setFormData}
+        onAcaraSubmit={handleSubmit}
+        onImageUpload={handleImageUpload}
+        tribunFormData={tribunForm}
+        onTribunFormChange={setTribunForm}
+        tribunList={editingAcara ? tribunList[editingAcara.id] || [] : []}
+        onTribunSubmit={editingTribun ? handleUpdateTribun : handleAddTribun}
+        onTribunEdit={handleEditTribun}
+        onTribunCancel={() => {
+          setEditingTribun(null);
+          setTribunForm({
+            nama_penyedia: "",
+            kontak_penyedia: "",
+            nama_tribun: "",
+            kategori: "REGULER",
+            harga_per_orang: "",
+            total_kursi: "",
+            deskripsi: "",
+          });
+        }}
+        onTribunDelete={handleDeleteTribunClick}
+        editingTribun={editingTribun}
+        saving={saving}
+        uploading={uploading}
+        savingTribun={savingTribun}
+      />
 
       {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
@@ -366,10 +481,10 @@ export default function KelolaAcaraPage() {
       {/* Confirm Delete Modal */}
       <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, id: null, name: "" })}
+        onClose={() => setDeleteModal({ isOpen: false, type: null, id: null, name: "" })}
         onConfirm={handleDelete}
-        title="Konfirmasi Hapus Acara"
-        message="Apakah Anda yakin ingin menghapus acara ini?"
+        title={deleteModal.type === "acara" ? "Konfirmasi Hapus Acara" : "Konfirmasi Hapus Tribun"}
+        message={deleteModal.type === "acara" ? "Apakah Anda yakin ingin menghapus acara ini?" : "Apakah Anda yakin ingin menghapus tribun ini?"}
         itemName={deleteModal.name}
         isLoading={!!deleting}
       />

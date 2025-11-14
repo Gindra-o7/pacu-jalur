@@ -26,7 +26,7 @@ export default function QuickLinks() {
       description: 'Penginapan & Hotel',
       icon: '🏨',
       color: 'from-blue-400 to-purple-500',
-      href: '/akomodasi'
+      href: '/penginapan'
     },
     {
       title: 'Kerajinan',

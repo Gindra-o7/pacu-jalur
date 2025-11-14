@@ -22,7 +22,53 @@ const NAV_SECTIONS = [
   { id: "partners", label: "Partner" },
 ];
 
-const Home = () => {
+type Tribun = {
+  id: string;
+  nama_tribun: string;
+  kategori: "REGULER" | "VIP";
+  harga_per_orang: number;
+  total_kursi: number;
+  kursi_terjual: number;
+};
+
+type Acara = {
+  id: string;
+  nama: string;
+  lokasi: string;
+  image_url: string | null;
+  deskripsi: string | null;
+  tgl_mulai: string;
+  tgl_selesai: string;
+  tribun: Tribun[];
+};
+
+async function getAcaraData(): Promise<Acara[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/acara`, {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    });
+
+    if (!res.ok) {
+      console.error('Failed to fetch acara data');
+      return [];
+    }
+
+    const { data } = await res.json();
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching acara:', error);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const acaraList = await getAcaraData();
+  
+  // Find upcoming event (event that hasn't ended yet)
+  const now = new Date();
+  const upcomingEvent = acaraList.find((acara) => new Date(acara.tgl_selesai) >= now);
+
   return (
     <main className="min-h-screen overflow-hidden">
       <Header />
@@ -30,7 +76,7 @@ const Home = () => {
       <HeroSection />
       <IntroSection />
       <VideoSection />
-      <FestivalInfo />
+      <FestivalInfo upcomingEvent={upcomingEvent} allEvents={acaraList} />
       <QuickLinks />
       <Gallery />
       <Testimonials />
@@ -40,5 +86,3 @@ const Home = () => {
     </main>
   );
 }
-
-export default Home;

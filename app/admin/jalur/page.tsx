@@ -7,6 +7,7 @@ import ToastContainer from "@/components/common/Toast";
 import ConfirmDeleteModal from "@/components/admin/ConfirmDeleteModal";
 import JalurModal from "@/components/admin/jalur/JalurModal";
 import JalurCard from "@/components/admin/jalur/JalurCard";
+import JalurCardSkeleton from "@/components/admin/jalur/JalurCardSkeleton";
 
 type Jalur = {
   id: string;
@@ -69,22 +70,64 @@ export default function KelolaJalurPage() {
   });
 
   useEffect(() => {
-    loadJalur();
+    loadAllData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadJalur = async () => {
+  // Load semua data sekaligus (jalur, galeri, medsos)
+  const loadAllData = async () => {
     try {
-      const response = await fetch("/api/admin/jalur");
-      if (!response.ok) throw new Error("Failed to fetch jalur");
-      const { data } = await response.json();
-      setJalurList(data || []);
+      setIsLoading(true);
+
+      // 1. Load data jalur terlebih dahulu
+      const jalurResponse = await fetch("/api/admin/jalur");
+      if (!jalurResponse.ok) throw new Error("Failed to fetch jalur");
+      const { data: jalurData } = await jalurResponse.json();
+      setJalurList(jalurData || []);
+
+      // 2. Load galeri dan medsos untuk semua jalur secara parallel
+      if (jalurData && jalurData.length > 0) {
+        const galeriPromises = jalurData.map((jalur: Jalur) =>
+          fetch(`/api/admin/jalur/${jalur.id}/galeri`)
+            .then((res) => (res.ok ? res.json() : { data: [] }))
+            .then(({ data }) => ({ jalurId: jalur.id, data: data || [] }))
+            .catch(() => ({ jalurId: jalur.id, data: [] }))
+        );
+
+        const medsosPromises = jalurData.map((jalur: Jalur) =>
+          fetch(`/api/admin/jalur/${jalur.id}/medsos`)
+            .then((res) => (res.ok ? res.json() : { data: [] }))
+            .then(({ data }) => ({ jalurId: jalur.id, data: data || [] }))
+            .catch(() => ({ jalurId: jalur.id, data: [] }))
+        );
+
+        // Wait for all galeri and medsos to load
+        const [galeriResults, medsosResults] = await Promise.all([Promise.all(galeriPromises), Promise.all(medsosPromises)]);
+
+        // Update state dengan semua data
+        const newGaleriList: { [key: string]: Galeri[] } = {};
+        galeriResults.forEach((result) => {
+          newGaleriList[result.jalurId] = result.data;
+        });
+        setGaleriList(newGaleriList);
+
+        const newMedsosList: { [key: string]: Medsos[] } = {};
+        medsosResults.forEach((result) => {
+          newMedsosList[result.jalurId] = result.data;
+        });
+        setMedsosList(newMedsosList);
+      }
     } catch (err) {
-      console.error("Error loading jalur:", err);
+      console.error("Error loading data:", err);
       showError("Terjadi kesalahan saat memuat data");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadJalur = async () => {
+    // Reload semua data untuk memastikan sinkronisasi
+    await loadAllData();
   };
 
   const loadGaleri = async (jalurId: string) => {
@@ -109,12 +152,12 @@ export default function KelolaJalurPage() {
     }
   };
 
-  const handleExpandJalur = async (jalurId: string) => {
+  const handleExpandJalur = (jalurId: string) => {
+    // Data sudah di-load sebelumnya, tinggal toggle expand
     if (expandedJalur === jalurId) {
       setExpandedJalur(null);
     } else {
       setExpandedJalur(jalurId);
-      await Promise.all([loadGaleri(jalurId), loadMedsos(jalurId)]);
     }
   };
 
@@ -164,7 +207,8 @@ export default function KelolaJalurPage() {
     }
   };
 
-  const handleEdit = async (jalur: Jalur) => {
+  const handleEdit = (jalur: Jalur) => {
+    // Data galeri dan medsos sudah di-load sebelumnya
     setEditingJalur(jalur);
     setFormData({
       nama: jalur.nama,
@@ -174,7 +218,6 @@ export default function KelolaJalurPage() {
       provinsi: jalur.provinsi,
       deskripsi: jalur.deskripsi || "",
     });
-    await Promise.all([loadGaleri(jalur.id), loadMedsos(jalur.id)]);
     setShowModal(true);
     setActiveTab("info");
   };
@@ -234,6 +277,7 @@ export default function KelolaJalurPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("folder", "jalur"); // Upload ke folder jalur
 
       const response = await fetch("/api/admin/upload/image", {
         method: "POST",
@@ -471,8 +515,10 @@ export default function KelolaJalurPage() {
 
       {/* Table */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <JalurCardSkeleton key={index} />
+          ))}
         </div>
       ) : filteredJalur.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">

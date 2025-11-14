@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Hotel, Plus, Edit, Trash2, Search, Star, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { Hotel, Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import ToastContainer from "@/components/common/Toast";
 import ConfirmDeleteModal from "@/components/admin/ConfirmDeleteModal";
+import PenginapanModal from "@/components/admin/penginapan/PenginapanModal";
+import PenginapanCard from "@/components/admin/penginapan/PenginapanCard";
+import PenginapanCardSkeleton from "@/components/admin/penginapan/PenginapanCardSkeleton";
 
 type Penginapan = {
   id: string;
@@ -32,6 +33,7 @@ export default function KelolaPenginapanPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingPenginapan, setEditingPenginapan] = useState<Penginapan | null>(null);
+  const [fasilitasList, setFasilitasList] = useState<{ [key: string]: Fasilitas[] }>({});
   const [formData, setFormData] = useState({
     nama: "",
     tipe: "",
@@ -41,33 +43,69 @@ export default function KelolaPenginapanPage() {
     rating: "",
     maps_url: "",
   });
-  const [fasilitasList, setFasilitasList] = useState<Fasilitas[]>([]);
+  const [activeTab, setActiveTab] = useState<"info" | "fasilitas">("info");
   const [newFasilitas, setNewFasilitas] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [savingFasilitas, setSavingFasilitas] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null; name: string }>({
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: "penginapan" | "fasilitas" | null;
+    id: string | null;
+    name: string;
+  }>({
     isOpen: false,
+    type: null,
     id: null,
     name: "",
   });
 
   useEffect(() => {
-    loadPenginapan();
+    loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadPenginapan = async () => {
+  // Load semua data sekaligus (penginapan + fasilitas)
+  const loadAllData = async () => {
     try {
-      const response = await fetch("/api/admin/penginapan");
-      if (!response.ok) throw new Error("Failed to fetch penginapan");
-      const { data } = await response.json();
-      setPenginapanList(data || []);
-    } catch (error) {
-      console.error("Error loading penginapan:", error);
+      setIsLoading(true);
+
+      // 1. Load data penginapan terlebih dahulu
+      const penginapanResponse = await fetch("/api/admin/penginapan");
+      if (!penginapanResponse.ok) throw new Error("Failed to fetch penginapan");
+      const { data: penginapanData } = await penginapanResponse.json();
+      setPenginapanList(penginapanData || []);
+
+      // 2. Load fasilitas untuk semua penginapan secara parallel
+      if (penginapanData && penginapanData.length > 0) {
+        const fasilitasPromises = penginapanData.map((penginapan: Penginapan) =>
+          fetch(`/api/admin/penginapan/${penginapan.id}/fasilitas`)
+            .then((res) => (res.ok ? res.json() : { data: [] }))
+            .then(({ data }) => ({ penginapanId: penginapan.id, data: data || [] }))
+            .catch(() => ({ penginapanId: penginapan.id, data: [] }))
+        );
+
+        const fasilitasResults = await Promise.all(fasilitasPromises);
+
+        // Update state dengan semua data
+        const newFasilitasList: { [key: string]: Fasilitas[] } = {};
+        fasilitasResults.forEach((result) => {
+          newFasilitasList[result.penginapanId] = result.data;
+        });
+        setFasilitasList(newFasilitasList);
+      }
+    } catch (err) {
+      console.error("Error loading data:", err);
       showError("Terjadi kesalahan saat memuat data");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadPenginapan = async () => {
+    // Reload semua data untuk memastikan sinkronisasi
+    await loadAllData();
   };
 
   const loadFasilitas = async (penginapanId: string) => {
@@ -75,9 +113,33 @@ export default function KelolaPenginapanPage() {
       const response = await fetch(`/api/admin/penginapan/${penginapanId}/fasilitas`);
       if (!response.ok) throw new Error("Failed to fetch fasilitas");
       const { data } = await response.json();
-      setFasilitasList(data || []);
+      setFasilitasList((prev) => ({ ...prev, [penginapanId]: data || [] }));
     } catch (error) {
       console.error("Error loading fasilitas:", error);
+    }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "penginapan"); // Upload ke folder penginapan
+
+      const response = await fetch("/api/admin/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to upload image");
+      }
+
+      const { compressed_url } = await response.json();
+      return compressed_url;
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -95,6 +157,9 @@ export default function KelolaPenginapanPage() {
           const { error } = await response.json();
           throw new Error(error || "Failed to update penginapan");
         }
+        const { data } = await response.json();
+        setEditingPenginapan(data);
+        await loadFasilitas(data.id);
         success("Penginapan berhasil diperbarui");
       } else {
         const response = await fetch("/api/admin/penginapan", {
@@ -106,11 +171,14 @@ export default function KelolaPenginapanPage() {
           const { error } = await response.json();
           throw new Error(error || "Failed to create penginapan");
         }
+        const { data } = await response.json();
+        // Set editingPenginapan dengan data baru agar bisa langsung menambah fasilitas
+        setEditingPenginapan(data);
+        await loadFasilitas(data.id);
         success("Penginapan berhasil ditambahkan");
       }
       await loadPenginapan();
-      setShowModal(false);
-      resetForm();
+      // Jangan tutup modal, biarkan user bisa langsung menambah fasilitas
     } catch (err) {
       console.error("Error saving penginapan:", err);
       showError(err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan data");
@@ -119,7 +187,8 @@ export default function KelolaPenginapanPage() {
     }
   };
 
-  const handleEdit = async (penginapan: Penginapan) => {
+  const handleEdit = (penginapan: Penginapan) => {
+    // Data fasilitas sudah di-load sebelumnya
     setEditingPenginapan(penginapan);
     setFormData({
       nama: penginapan.nama,
@@ -130,31 +199,46 @@ export default function KelolaPenginapanPage() {
       rating: penginapan.rating || "",
       maps_url: penginapan.maps_url || "",
     });
-    await loadFasilitas(penginapan.id);
     setShowModal(true);
+    setActiveTab("info");
   };
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setDeleteModal({ isOpen: true, id, name });
+  const handleDeleteClick = (id: string, name: string, type: "penginapan" | "fasilitas" = "penginapan") => {
+    setDeleteModal({ isOpen: true, type, id, name });
   };
 
   const handleDelete = async () => {
-    if (!deleteModal.id) return;
+    if (!deleteModal.id || !deleteModal.type) return;
 
     setDeleting(deleteModal.id);
     try {
-      const response = await fetch(`/api/admin/penginapan/${deleteModal.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || "Failed to delete penginapan");
+      let response;
+      if (deleteModal.type === "penginapan") {
+        response = await fetch(`/api/admin/penginapan/${deleteModal.id}`, {
+          method: "DELETE",
+        });
+      } else if (deleteModal.type === "fasilitas") {
+        response = await fetch(`/api/admin/penginapan/fasilitas/${deleteModal.id}`, {
+          method: "DELETE",
+        });
       }
-      await loadPenginapan();
-      success("Penginapan berhasil dihapus");
-      setDeleteModal({ isOpen: false, id: null, name: "" });
+
+      if (!response || !response.ok) {
+        const { error } = await response!.json();
+        throw new Error(error || "Failed to delete");
+      }
+
+      if (deleteModal.type === "penginapan") {
+        await loadPenginapan();
+        success("Penginapan berhasil dihapus");
+      } else if (deleteModal.type === "fasilitas" && editingPenginapan) {
+        await loadFasilitas(editingPenginapan.id);
+        success("Fasilitas berhasil dihapus");
+      }
+
+      setDeleteModal({ isOpen: false, type: null, id: null, name: "" });
     } catch (err) {
-      console.error("Error deleting penginapan:", err);
+      console.error("Error deleting:", err);
       showError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus data");
     } finally {
       setDeleting(null);
@@ -162,7 +246,11 @@ export default function KelolaPenginapanPage() {
   };
 
   const handleAddFasilitas = async () => {
-    if (!newFasilitas.trim() || !editingPenginapan) return;
+    if (!newFasilitas.trim() || !editingPenginapan) {
+      showError("Silakan simpan penginapan terlebih dahulu sebelum menambah fasilitas");
+      return;
+    }
+
     setSavingFasilitas(true);
     try {
       const response = await fetch(`/api/admin/penginapan/${editingPenginapan.id}/fasilitas`, {
@@ -170,12 +258,14 @@ export default function KelolaPenginapanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama: newFasilitas }),
       });
+
       if (!response.ok) {
         const { error } = await response.json();
         throw new Error(error || "Failed to add fasilitas");
       }
-      setNewFasilitas("");
+
       await loadFasilitas(editingPenginapan.id);
+      setNewFasilitas("");
       success("Fasilitas berhasil ditambahkan");
     } catch (err) {
       console.error("Error adding fasilitas:", err);
@@ -185,21 +275,8 @@ export default function KelolaPenginapanPage() {
     }
   };
 
-  const handleDeleteFasilitas = async (id: string) => {
-    try {
-      const response = await fetch(`/api/admin/penginapan/fasilitas/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || "Failed to delete fasilitas");
-      }
-      if (editingPenginapan) await loadFasilitas(editingPenginapan.id);
-      success("Fasilitas berhasil dihapus");
-    } catch (err) {
-      console.error("Error deleting fasilitas:", err);
-      showError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus fasilitas");
-    }
+  const handleDeleteFasilitasClick = (id: string, name: string) => {
+    setDeleteModal({ isOpen: true, type: "fasilitas", id, name });
   };
 
   const resetForm = () => {
@@ -213,8 +290,8 @@ export default function KelolaPenginapanPage() {
       maps_url: "",
     });
     setEditingPenginapan(null);
-    setFasilitasList([]);
     setNewFasilitas("");
+    setActiveTab("info");
   };
 
   const filteredPenginapan = penginapanList.filter((p) => p.nama.toLowerCase().includes(searchTerm.toLowerCase()) || p.tipe.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -252,8 +329,10 @@ export default function KelolaPenginapanPage() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <PenginapanCardSkeleton key={index} />
+          ))}
         </div>
       ) : filteredPenginapan.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
@@ -263,220 +342,41 @@ export default function KelolaPenginapanPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPenginapan.map((penginapan) => (
-            <div key={penginapan.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
-              {penginapan.image_url && (
-                <div className="relative h-48 w-full">
-                  <Image src={penginapan.image_url} alt={penginapan.nama} fill className="object-cover" />
-                </div>
-              )}
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-xl font-bold text-gray-900 font-heading">{penginapan.nama}</h3>
-                  {penginapan.rating && (
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-body">{penginapan.rating}</span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mb-2 font-body">{penginapan.tipe}</p>
-                {penginapan.harga && <p className="text-lg font-bold text-orange-600 mb-3 font-body">{penginapan.harga}</p>}
-                {penginapan.deskripsi && <p className="text-sm text-gray-600 line-clamp-2 font-body">{penginapan.deskripsi}</p>}
-                <div className="flex gap-2 mt-4">
-                  <button onClick={() => handleEdit(penginapan)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium font-body flex items-center justify-center gap-2">
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(penginapan.id, penginapan.nama)}
-                    disabled={deleting === penginapan.id}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium font-body disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {deleting === penginapan.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <PenginapanCard
+              key={penginapan.id}
+              penginapan={penginapan}
+              onEdit={() => handleEdit(penginapan)}
+              onDelete={() => handleDeleteClick(penginapan.id, penginapan.nama, "penginapan")}
+              isDeleting={deleting === penginapan.id}
+              fasilitasList={fasilitasList[penginapan.id] || []}
+            />
           ))}
         </div>
       )}
 
       {/* Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                setShowModal(false);
-                resetForm();
-              }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none"
-            >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 md:p-8 pointer-events-auto max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 font-heading">{editingPenginapan ? "Edit Penginapan" : "Tambah Penginapan Baru"}</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Nama Penginapan *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.nama}
-                      onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Tipe *</label>
-                      <select
-                        required
-                        value={formData.tipe}
-                        onChange={(e) => setFormData({ ...formData, tipe: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                      >
-                        <option value="">Pilih Tipe</option>
-                        <option value="Hotel">Hotel</option>
-                        <option value="Penginapan">Penginapan</option>
-                        <option value="Homestay">Homestay</option>
-                        <option value="Villa">Villa</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Harga</label>
-                      <input
-                        type="text"
-                        value={formData.harga}
-                        onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
-                        placeholder="Contoh: Rp 200.000/malam"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">URL Gambar</label>
-                    <input
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Rating</label>
-                      <input
-                        type="text"
-                        value={formData.rating}
-                        onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                        placeholder="Contoh: 4.5"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">URL Maps</label>
-                      <input
-                        type="url"
-                        value={formData.maps_url}
-                        onChange={(e) => setFormData({ ...formData, maps_url: e.target.value })}
-                        placeholder="https://maps.google.com/..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Deskripsi</label>
-                    <textarea
-                      value={formData.deskripsi}
-                      onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                    />
-                  </div>
-
-                  {/* Fasilitas (hanya saat edit) */}
-                  {editingPenginapan && (
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 font-body">Fasilitas</label>
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={newFasilitas}
-                          onChange={(e) => setNewFasilitas(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddFasilitas();
-                            }
-                          }}
-                          placeholder="Tambah fasilitas..."
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-gray-900 font-body"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddFasilitas}
-                          disabled={savingFasilitas || !newFasilitas.trim()}
-                          className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium font-body disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                        >
-                          {savingFasilitas ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {fasilitasList.map((fasilitas) => (
-                          <span key={fasilitas.id} className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-body">
-                            {fasilitas.nama}
-                            <button type="button" onClick={() => handleDeleteFasilitas(fasilitas.id)} className="text-red-600 hover:text-red-700">
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowModal(false);
-                        resetForm();
-                      }}
-                      className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300 font-medium font-body"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="flex-1 px-4 py-3 rounded-xl bg-linear-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-300 font-medium font-body shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {saving ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Menyimpan...
-                        </>
-                      ) : editingPenginapan ? (
-                        "Update"
-                      ) : (
-                        "Simpan"
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <PenginapanModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          resetForm();
+        }}
+        editingPenginapan={editingPenginapan}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        penginapanFormData={formData}
+        onPenginapanFormChange={setFormData}
+        onPenginapanSubmit={handleSubmit}
+        onImageUpload={handleImageUpload}
+        fasilitasValue={newFasilitas}
+        onFasilitasChange={setNewFasilitas}
+        fasilitasList={editingPenginapan ? fasilitasList[editingPenginapan.id] || [] : []}
+        onFasilitasSubmit={handleAddFasilitas}
+        onFasilitasDelete={handleDeleteFasilitasClick}
+        saving={saving}
+        uploading={uploading}
+        savingFasilitas={savingFasilitas}
+      />
 
       {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
@@ -484,10 +384,10 @@ export default function KelolaPenginapanPage() {
       {/* Confirm Delete Modal */}
       <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, id: null, name: "" })}
+        onClose={() => setDeleteModal({ isOpen: false, type: null, id: null, name: "" })}
         onConfirm={handleDelete}
-        title="Konfirmasi Hapus Penginapan"
-        message="Apakah Anda yakin ingin menghapus penginapan ini?"
+        title={deleteModal.type === "penginapan" ? "Konfirmasi Hapus Penginapan" : "Konfirmasi Hapus Fasilitas"}
+        message={deleteModal.type === "penginapan" ? "Apakah Anda yakin ingin menghapus penginapan ini?" : "Apakah Anda yakin ingin menghapus fasilitas ini?"}
         itemName={deleteModal.name}
         isLoading={!!deleting}
       />

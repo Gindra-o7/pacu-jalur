@@ -9,7 +9,7 @@ type MotionButtonProps = {
   onClick?: (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   children: ReactNode;
   className?: string;
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "outline";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
 };
@@ -26,6 +26,7 @@ const sizeMap: Record<NonNullable<MotionButtonProps["size"]>, string> = {
 const variantMap: Record<NonNullable<MotionButtonProps["variant"]>, string> = {
   primary: "bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 text-white shadow-[0_8px_24px_rgba(234,88,12,0.35)] hover:shadow-[0_12px_32px_rgba(234,88,12,0.45)] hover:from-orange-600 hover:via-red-600 hover:to-orange-700",
   ghost: "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30",
+  outline: "bg-transparent text-white hover:bg-white/10 border-2 border-white/50 hover:border-white/70 backdrop-blur-sm",
 };
 
 const Button = ({ href, onClick, children, className = "", variant = "primary", size = "md", fullWidth = false }: MotionButtonProps) => {
