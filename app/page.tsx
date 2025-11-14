@@ -5,8 +5,7 @@ import VideoSection from "../components/landing/VideoSection";
 import FestivalInfo from "../components/landing/FestivalInfo";
 import QuickLinks from "../components/landing/QuickLinks";
 import Gallery from "../components/landing/Gallery";
-import Testimonials from "../components/landing/Testimonials";
-import NewsSection from "../components/landing/NewsSection";
+import DesaBerlomba from "../components/landing/DesaBerlomba";
 import PartnersSection from "../components/landing/PartnersSection";
 import Footer from "../components/landing/Footer";
 import SidebarNav from "@/components/common/SidebarNav";
@@ -18,7 +17,7 @@ const NAV_SECTIONS = [
   { id: "festival", label: "Festival" },
   { id: "destinasi", label: "Destinasi" },
   { id: "gallery", label: "Galeri" },
-  { id: "testimonials", label: "Testimoni" },
+  { id: "desa-berlomba", label: "Desa Berlomba" },
   { id: "partners", label: "Partner" },
 ];
 
@@ -44,27 +43,98 @@ type Acara = {
 
 async function getAcaraData(): Promise<Acara[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const res = await fetch(`${baseUrl}/api/acara`, {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
 
     if (!res.ok) {
-      console.error('Failed to fetch acara data');
+      console.error("Failed to fetch acara data");
       return [];
     }
 
     const { data } = await res.json();
     return data || [];
   } catch (error) {
-    console.error('Error fetching acara:', error);
+    console.error("Error fetching acara:", error);
+    return [];
+  }
+}
+
+type Jalur = {
+  id: string;
+  nama: string;
+  desa: string;
+  kecamatan: string;
+  kabupaten: string;
+  provinsi: string;
+  deskripsi: string | null;
+};
+
+type JalurData = {
+  id: string;
+  nama: string;
+  desa: string;
+  kecamatan: string;
+};
+
+type Galeri = {
+  id: string;
+  image_url: string;
+  judul: string | null;
+  caption: string | null;
+  jalur_id: string;
+  jalur: JalurData | null;
+};
+
+async function getJalurData(): Promise<Jalur[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/jalur`, {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch jalur data");
+      return [];
+    }
+
+    const { data } = await res.json();
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching jalur:", error);
+    return [];
+  }
+}
+
+async function getGaleriData(): Promise<Galeri[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/galeri`, {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch galeri data");
+      return [];
+    }
+
+    const { data } = await res.json();
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching galeri:", error);
     return [];
   }
 }
 
 export default async function Home() {
-  const acaraList = await getAcaraData();
-  
+  // Fetch all data in parallel
+  const [acaraList, jalurList, galleryImages] = await Promise.all([
+    getAcaraData(),
+    getJalurData(),
+    getGaleriData(),
+  ]);
+
   // Find upcoming event (event that hasn't ended yet)
   const now = new Date();
   const upcomingEvent = acaraList.find((acara) => new Date(acara.tgl_selesai) >= now);
@@ -78,9 +148,8 @@ export default async function Home() {
       <VideoSection />
       <FestivalInfo upcomingEvent={upcomingEvent} allEvents={acaraList} />
       <QuickLinks />
-      <Gallery />
-      <Testimonials />
-      <NewsSection />
+      <Gallery galleryImages={galleryImages} />
+      <DesaBerlomba jalurList={jalurList} />
       <PartnersSection />
       <Footer />
     </main>

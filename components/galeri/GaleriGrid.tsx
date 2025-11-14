@@ -32,7 +32,7 @@ export default function GaleriGrid({ galeriList }: GaleriGridProps) {
   console.log("GaleriGrid received data:", galeriList.length, "items");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-2">
+    <div className="max-w-7xl mx-auto px-4 py-10">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-heading">Galeri Pacu Jalur</h1>
