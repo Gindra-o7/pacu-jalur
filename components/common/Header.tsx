@@ -55,13 +55,13 @@ const navigationMessages: Messages = {
             title: "Wisata Alam",
             items: [
               { label: "Air Terjun Guruh Gemurai", href: "/guruh-gemurai" },
-              { label: "Tepian Narosa", href: "/tepian-narosa" },
               { label: "Lainnya", href: "/wisata-alam" },
             ],
           },
           {
             title: "Wisata Budaya",
             items: [
+              { label: "Perahu Baganduang", href: "/perahu-baganduang" },
               { label: "Sentra Tenun", href: "/sentra-tenun" },
               { label: "Miniatur Jalur", href: "/miniatur-jalur" },
               { label: "Kerajinan", href: "/kerajinan" },
