@@ -62,7 +62,6 @@ const navigationMessages: Messages = {
             title: "Wisata Budaya",
             items: [
               { label: "Perahu Baganduang", href: "/perahu-baganduang" },
-              { label: "Sentra Tenun", href: "/sentra-tenun" },
               { label: "Miniatur Jalur", href: "/miniatur-jalur" },
               { label: "Kerajinan", href: "/kerajinan" },
             ],
@@ -84,10 +83,6 @@ const navigationMessages: Messages = {
               { label: "Rental Mobil/Travel", href: "/rental" },
             ],
           },
-          {
-            title: "Panduan Lokal",
-            items: [{ label: "Panduan Perjalanan Lokal", href: "/panduan-perjalanan" }],
-          },
         ],
       },
       {
@@ -104,13 +99,6 @@ const navigationMessages: Messages = {
               { label: "Galeri Pacu Jalur", href: "/galeri" },
             ],
           },
-          {
-            title: "Warisan & Cerita",
-            items: [
-              { label: "Cerita & Legenda Rakyat", href: "/legenda" },
-              { label: "Warisan Budaya", href: "/warisan-budaya" },
-            ],
-          },
         ],
       },
       {
@@ -123,7 +111,6 @@ const navigationMessages: Messages = {
               { label: "Tips & Do's and Don'ts", href: "/tips" },
               { label: "Kontak & Bantuan Darurat", href: "/bantuan-darurat" },
               { label: "FAQ", href: "/faq" },
-              { label: "Ulasan Pengunjung", href: "/ulasan" },
             ],
           },
         ],
@@ -139,6 +126,7 @@ const Header = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [closeTimer, setCloseTimer] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -149,13 +137,28 @@ const Header = () => {
 
   const messages = navigationMessages;
 
-  // Check authentication status
+  // Check authentication status and role
   useEffect(() => {
     const checkAuth = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
+
+      // Get user role if authenticated
+      if (session) {
+        try {
+          const response = await fetch("/api/auth/get-user-role");
+          const { role } = await response.json();
+          setUserRole(role);
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setUserRole(null);
+        }
+      } else {
+        setUserRole(null);
+      }
+
       setIsLoading(false);
     };
 
@@ -164,8 +167,21 @@ const Header = () => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsAuthenticated(!!session);
+
+      if (session) {
+        try {
+          const response = await fetch("/api/auth/get-user-role");
+          const { role } = await response.json();
+          setUserRole(role);
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setUserRole(null);
+        }
+      } else {
+        setUserRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -249,7 +265,7 @@ const Header = () => {
               <div className="w-20 h-9 bg-gray-700 rounded-full animate-pulse"></div>
             ) : isAuthenticated ? (
               <>
-                <MotionButton href="/admin" className="ml-2" size="md" variant="primary">
+                <MotionButton href={userRole === "ADMIN" ? "/admin" : "/customer"} className="ml-2" size="md" variant="primary">
                   Dashboard
                 </MotionButton>
                 <button
@@ -327,7 +343,7 @@ const Header = () => {
                 <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse"></div>
               ) : isAuthenticated ? (
                 <>
-                  <MotionButton href="/admin" onClick={() => setIsMobileMenuOpen(false)} fullWidth size="md">
+                  <MotionButton href={userRole === "ADMIN" ? "/admin" : "/customer"} onClick={() => setIsMobileMenuOpen(false)} fullWidth size="md">
                     Dashboard
                   </MotionButton>
                   <button

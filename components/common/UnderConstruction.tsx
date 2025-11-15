@@ -30,10 +30,11 @@ import {
   Phone,
   HelpCircle,
   MessageSquare,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 
-type IconName = "construction" | "waves" | "mapPin" | "trees" | "shirt" | "ship" | "palette" | "hotel" | "bus" | "car" | "map" | "calendar" | "video" | "star" | "image" | "bookOpen" | "award" | "phone" | "helpCircle" | "messageSquare";
+type IconName = "construction" | "waves" | "mapPin" | "trees" | "shirt" | "ship" | "palette" | "hotel" | "bus" | "car" | "map" | "calendar" | "video" | "star" | "image" | "bookOpen" | "award" | "phone" | "helpCircle" | "messageSquare" | "user";
 
 interface UnderConstructionProps {
   title: string;
@@ -63,6 +64,7 @@ const iconMap: Record<IconName, React.ComponentType<{ className?: string }>> = {
   phone: Phone,
   helpCircle: HelpCircle,
   messageSquare: MessageSquare,
+  user: User,
 };
 
 const NAV_SECTIONS = [{ id: "hero", label: "Beranda" }];

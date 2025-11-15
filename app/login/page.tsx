@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,45 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+  // Check if user is already authenticated and redirect accordingly
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          // User is already logged in, redirect based on role
+          try {
+            const response = await fetch("/api/auth/get-user-role");
+            const { role } = await response.json();
+
+            if (role === "ADMIN") {
+              router.push("/admin");
+            } else {
+              router.push("/customer");
+            }
+            router.refresh();
+          } catch {
+            // If role fetch fails, redirect to customer dashboard
+            router.push("/customer");
+            router.refresh();
+          }
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [router, supabase]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -54,15 +91,15 @@ export default function LoginPage() {
             if (role === "ADMIN") {
               router.push("/admin");
             } else {
-              router.push("/");
+              router.push("/customer");
             }
             router.refresh();
           }, 1000);
         } catch {
-          // If profile fetch fails, redirect to home
+          // If profile fetch fails, redirect to customer dashboard
           setMessage("Login berhasil! Mengalihkan...");
           setTimeout(() => {
-            router.push("/");
+            router.push("/customer");
             router.refresh();
           }, 1000);
         }
@@ -75,18 +112,26 @@ export default function LoginPage() {
     }
   };
 
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <Image src={getStorageImageUrl("public/pacu-jalur-1.webp")} alt="Pacu Jalur Background" fill className="object-cover" priority blurDataURL={BLUR_DATA_URL} />
+          <div className="absolute inset-0 bg-linear-to-br from-black/70 via-black/60 to-black/70" />
+        </div>
+        <div className="relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
-        <Image 
-        src={getStorageImageUrl("public/pacu-jalur-1.webp")} 
-        alt="Pacu Jalur Background" 
-        fill 
-        className="object-cover" 
-        priority 
-        blurDataURL={BLUR_DATA_URL} 
-        />
+        <Image src={getStorageImageUrl("public/pacu-jalur-1.webp")} alt="Pacu Jalur Background" fill className="object-cover" priority blurDataURL={BLUR_DATA_URL} />
         <div className="absolute inset-0 bg-linear-to-br from-black/70 via-black/60 to-black/70" />
       </div>
 
