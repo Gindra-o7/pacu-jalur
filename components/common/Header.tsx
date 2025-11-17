@@ -102,6 +102,11 @@ const navigationMessages: Messages = {
         ],
       },
       {
+        key: "desa",
+        label: "Desa",
+        groups: [],
+      },
+      {
         key: "info",
         label: "Info Wisatawan",
         groups: [
@@ -241,7 +246,7 @@ const Header = () => {
               return menus.map((menu: TopMenu) => {
                 if (!menu.groups || menu.groups.length === 0) {
                   return (
-                    <Link key={menu.key} href="/" className="font-medium font-body text-white hover:text-orange-400">
+                    <Link key={menu.key} href={menu.key === "desa" ? "/desa" : "/"} className="font-medium font-body text-white hover:text-orange-400">
                       {menu.label}
                     </Link>
                   );
@@ -301,7 +306,7 @@ const Header = () => {
                   if (!menu.groups || menu.groups.length === 0) {
                     return (
                       <div key={menu.key} className="px-4 py-3">
-                        <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="font-medium text-gray-900">
+                        <Link href={menu.key === "desa" ? "/desa" : "/"} onClick={() => setIsMobileMenuOpen(false)} className="font-medium text-gray-900">
                           {menu.label}
                         </Link>
                       </div>

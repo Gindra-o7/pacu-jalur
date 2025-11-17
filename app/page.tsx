@@ -129,11 +129,7 @@ async function getGaleriData(): Promise<Galeri[]> {
 
 export default async function Home() {
   // Fetch all data in parallel
-  const [acaraList, jalurList, galleryImages] = await Promise.all([
-    getAcaraData(),
-    getJalurData(),
-    getGaleriData(),
-  ]);
+  const [acaraList, jalurList, galleryImages] = await Promise.all([getAcaraData(), getJalurData(), getGaleriData()]);
 
   // Find upcoming event (event that hasn't ended yet)
   const now = new Date();
@@ -149,7 +145,7 @@ export default async function Home() {
       <FestivalInfo upcomingEvent={upcomingEvent} allEvents={acaraList} />
       <QuickLinks />
       <Gallery galleryImages={galleryImages} />
-      <DesaBerlomba jalurList={jalurList} />
+      <DesaBerlomba jalurList={jalurList} galleryImages={galleryImages} />
       <PartnersSection />
       <Footer />
     </main>

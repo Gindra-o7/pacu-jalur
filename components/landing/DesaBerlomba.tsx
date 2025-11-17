@@ -10,11 +10,28 @@ type Jalur = {
   deskripsi: string | null;
 };
 
-type DesaBerlombaProps = {
-  jalurList: Jalur[];
+type JalurData = {
+  id: string;
+  nama: string;
+  desa: string;
+  kecamatan: string;
 };
 
-export default function DesaBerlomba({ jalurList }: DesaBerlombaProps) {
+type Galeri = {
+  id: string;
+  image_url: string;
+  judul: string | null;
+  caption: string | null;
+  jalur_id: string;
+  jalur: JalurData | null;
+};
+
+type DesaBerlombaProps = {
+  jalurList: Jalur[];
+  galleryImages: Galeri[];
+};
+
+export default function DesaBerlomba({ jalurList, galleryImages }: DesaBerlombaProps) {
   // Group by desa to get unique villages
   const desaMap = new Map<string, { desa: string; kecamatan: string; jalur: Jalur[] }>();
 
@@ -28,5 +45,5 @@ export default function DesaBerlomba({ jalurList }: DesaBerlombaProps) {
 
   const desaList = Array.from(desaMap.values());
 
-  return <DesaBerlombaContent desaList={desaList} totalJalur={jalurList.length} />;
+  return <DesaBerlombaContent desaList={desaList} totalJalur={jalurList.length} galleryImages={galleryImages} />;
 }
