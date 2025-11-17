@@ -94,7 +94,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     let matchedKecamatan: string | null = null;
 
     if (allJalur && allJalur.length > 0) {
-      const uniqueCombos = Array.from(
+      const uniqueCombos: string[] = Array.from(
         new Set(allJalur.map((j: { desa: string; kecamatan: string }) => `${j.desa}-${j.kecamatan}`))
       );
 
